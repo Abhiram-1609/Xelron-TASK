@@ -2,7 +2,7 @@
 
 ![UI Showcase](assets/showcase.png)
 
-Welcome to the complete Harbor Task submission by Vasanth Banoth. 
+Welcome to the complete Harbor Task submission by Eslavath Abhiram. 
 
 This repository contains an end-to-end implementation of a **Harbor Data-Processing Task**, meeting and exceeding all requirements for the Xelron assignment. It is built to seamlessly pass both the **Oracle Test (1.0)** and **NOP Test (0.0)** while providing a stunning visual showcase.
 
