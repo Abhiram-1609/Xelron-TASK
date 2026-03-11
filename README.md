@@ -1,5 +1,7 @@
 # 🚀 Xelron Harbor Task Assignment: JSON Data Transform
 
+![UI Showcase](assets/showcase.png)
+
 Welcome to the complete Harbor Task submission by Vasanth Banoth. 
 
 This repository contains an end-to-end implementation of a **Harbor Data-Processing Task**, meeting and exceeding all requirements for the Xelron assignment. It is built to seamlessly pass both the **Oracle Test (1.0)** and **NOP Test (0.0)** while providing a stunning visual showcase.
