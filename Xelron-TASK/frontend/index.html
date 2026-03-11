@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xelron Protocol | Task Visualizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Dark Mode Defaults */
+            --bg-base: #030305;
+            --bg-surface: rgba(14, 15, 23, 0.6);
+            --bg-surface-hover: rgba(22, 24, 34, 0.8);
+            --neon-primary: #00ffcc;
+            --neon-secondary: #aa00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #8892b0;
+            --border-glow: rgba(0, 255, 204, 0.2);
+            --border-dim: rgba(255, 255, 255, 0.05);
+            --code-bg: rgba(0, 0, 0, 0.4);
+            --code-text: #a5b4fc;
+        }
+
+        body.light-mode {
+            /* Light Mode Overrides */
+            --bg-base: #f8fafc;
+            --bg-surface: rgba(255, 255, 255, 0.7);
+            --bg-surface-hover: rgba(255, 255, 255, 0.9);
+            --neon-primary: #0ea5e9;
+            --neon-secondary: #8b5cf6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --border-glow: rgba(14, 165, 233, 0.2);
+            --border-dim: rgba(15, 23, 42, 0.1);
+            --code-bg: rgba(241, 245, 249, 0.6);
+            --code-text: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* Web3 Animated Background */
+        .bg-mesh {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(170, 0, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 204, 0.05) 0%, transparent 30%);
+            z-index: -1;
+            animation: rotateBg 30s linear infinite;
+        }
+
+        body.light-mode .bg-mesh {
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.08) 0%, transparent 30%);
+        }
+
+        @keyframes rotateBg {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 4rem;
+            border-bottom: 1px solid var(--border-dim);
+            background: rgba(3, 3, 5, 0.8);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.5s ease;
+        }
+
+        body.light-mode nav {
+            background: rgba(248, 250, 252, 0.8);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, var(--neon-primary), var(--neon-secondary));
+            border-radius: 6px;
+            box-shadow: 0 0 15px var(--border-glow);
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-dim);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        body.light-mode .theme-toggle {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            border-color: var(--neon-primary);
+        }
+
+        .wallet-btn {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid var(--neon-primary);
+            color: var(--neon-primary);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.1);
+        }
+
+        .wallet-btn:hover {
+            background: rgba(0, 255, 204, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .glass-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-dim);
+            border-radius: 16px;
+            padding: 2rem;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.1);
+            background: var(--bg-surface-hover);
+            transform: translateY(-2px);
+        }
+
+        body.light-mode .glass-panel {
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        body.light-mode .glass-panel:hover {
+            border-color: rgba(15, 23, 42, 0.1);
+        }
+
+        /* Subtle glowing edge */
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-secondary), transparent);
+            opacity: 0.5;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-title::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            background: var(--neon-primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-primary);
+        }
+
+        /* Code Block Styling */
+        .code-container {
+            background: var(--code-bg);
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            min-height: 250px;
+            transition: background-color 0.5s ease;
+        }
+
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--code-text);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .data-key { color: var(--neon-primary); }
+        .data-string { color: #eab308; } /* yellow */
+        .data-number { color: #ec4899; } /* pink */
+        
+        body.light-mode .data-string { color: #d97706; } /* darker yellow/amber */
+        body.light-mode .data-number { color: #e11d48; } /* darker pink/rose */
+
+        /* Execution Controls */
+        .execution-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .dot.active {
+            background: var(--neon-primary);
+            box-shadow: 0 0 8px var(--neon-primary);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 204, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(0, 255, 204, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 204, 0); }
+        }
+
+        body.light-mode .dot.active {
+            animation: pulseLight 1.5s infinite;
+        }
+
+        @keyframes pulseLight {
+            0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+
+        .execute-btn {
+            background: linear-gradient(90deg, var(--neon-secondary), #7e22ce);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(170, 0, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .execute-btn:hover {
+            box-shadow: 0 6px 20px rgba(170, 0, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .execute-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Animation Matrix Style */
+        .matrix-loader {
+            display: none;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon-primary);
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* Media Query */
+        @media (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr; }
+            nav { padding: 1.5rem 2rem; }
+            .hero h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <nav>
+        <div class="logo">
+            <div class="logo-icon"></div>
+            Xelron Protocol
+        </div>
+        <div class="nav-controls">
+            <!-- Theme Toggle Button -->
+            <button class="theme-toggle" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </button>
+            <button class="wallet-btn" id="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <h1>Transaction Aggregator Node</h1>
+            <p>Harbor Agent Workspace: Validating decentralized datasets and calculating aggregated on-chain smart contract metrics.</p>
+        </section>
+
+        <section class="dashboard">
+            <!-- Input Node -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Payload: input.json</div>
+                    <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--text-secondary)">Blocks: 5</div>
+                </div>
+                <div class="code-container">
+                    <pre id="input-code">[
+  {
+    <span class="data-key">"id"</span>: <span class="data-number">1</span>, 
+    <span class="data-key">"status"</span>: <span class="data-string">"completed"</span>, 
+    <span class="data-key">"amount"</span>: <span class="data-number">105.50</span>
+  },
+  {
+    <span class="data-key">"id"</span>: <span class="data-number">2</span>, 
+    <span class="data-key">"status"</span>: <span class="data-string">"pending"</span>, 
+    <span class="data-key">"amount"</span>: <span class="data-number">50.0</span>
+  },
+  {
+    <span class="data-key">"id"</span>: <span class="data-number">3</span>, 
+    <span class="data-key">"status"</span>: <span class="data-string">"completed"</span>, 
+    <span class="data-key">"amount"</span>: <span class="data-number">204.25</span>
+  },
+  {
+    <span class="data-key">"id"</span>: <span class="data-number">4</span>, 
+    <span class="data-key">"status"</span>: <span class="data-string">"failed"</span>, 
+    <span class="data-key">"amount"</span>: <span class="data-number">300.0</span>
+  },
+  {
+    <span class="data-key">"id"</span>: <span class="data-number">5</span>, 
+    <span class="data-key">"status"</span>: <span class="data-string">"completed"</span>, 
+    <span class="data-key">"amount"</span>: <span class="data-number">40.25</span>
+  }
+]</pre>
+                </div>
+                <div class="execution-row">
+                    <div class="status-indicator">
+                        <div class="dot" id="node-status"></div>
+                        <span id="node-text">Node Ready</span>
+                    </div>
+                    <button class="execute-btn" id="execute-btn" onclick="executeAgent()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Execute Agent
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output Node -->
+            <div class="glass-panel" id="output-panel" style="border-top-color: var(--neon-primary)">
+                <div class="panel-header">
+                    <div class="panel-title" id="output-title" style="color: var(--neon-primary)">Result: output.json</div>
+                    <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--text-secondary)">Hash: 0x...</div>
+                </div>
+                <div class="code-container" id="output-container">
+                    <div class="matrix-loader" id="loader">
+                        Computing Aggregation...<br>
+                        Verifying Signatures...<br>
+                        Executing Smart Contract...
+                    </div>
+                    <pre id="output-code" style="opacity: 0.3; transition: opacity 0.3s;">{
+  <span style="color: var(--text-secondary)">// Awaiting execution signal...</span>
+}</pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            document.body.classList.add('light-mode');
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+
+        // Theme Toggle Functionality
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            
+            if (isLight) {
+                localStorage.setItem('theme', 'light');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                localStorage.setItem('theme', 'dark');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        }
+
+        // Fake wallet connect for the Web3 feel
+        function connectWallet() {
+            const btn = document.getElementById('wallet-btn');
+            if (btn.innerText !== "Connect Wallet") return; // Already connected
+            
+            btn.innerText = "Connecting...";
+            setTimeout(() => {
+                const fakeAddress = "0x" + Math.random().toString(16).substr(2, 4) + "..." + Math.random().toString(16).substr(2, 4);
+                btn.innerText = fakeAddress;
+                
+                // Keep styles dynamic depending on theme
+                btn.style.color = "var(--text-primary)";
+                btn.style.background = "var(--border-glow)";
+                btn.style.borderColor = "var(--neon-secondary)";
+            }, 800);
+        }
+
+        // Execution Logic mimicking the Harbor Agent solve.sh
+        function executeAgent() {
+            const btn = document.getElementById('execute-btn');
+            const dot = document.getElementById('node-status');
+            const nodeText = document.getElementById('node-text');
+            const outputCode = document.getElementById('output-code');
+            const loader = document.getElementById('loader');
+            const outputTitle = document.getElementById('output-title');
+            const outputPanel = document.getElementById('output-panel');
+
+            // UI State change
+            btn.disabled = true;
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg> Processing...`;
+            dot.classList.add('active');
+            nodeText.innerText = "Processing Tx Data...";
+            nodeText.style.color = "var(--neon-primary)";
+            
+            outputCode.style.opacity = "0";
+            loader.style.display = "block";
+
+            // Add simple spin animation CSS dynamically
+            if (!document.getElementById('spin-style')) {
+                const style = document.createElement('style');
+                style.id = 'spin-style';
+                style.innerHTML = `@keyframes spin { 100% { transform: rotate(360deg); } }`;
+                document.head.appendChild(style);
+            }
+
+            // Simulated wait time for agent processing
+            setTimeout(() => {
+                // The actual JS logic mapping the python agent calculation
+                const data = [
+                    {"id": 1, "status": "completed", "amount": 105.50},
+                    {"id": 2, "status": "pending", "amount": 50.0},
+                    {"id": 3, "status": "completed", "amount": 204.25},
+                    {"id": 4, "status": "failed", "amount": 300.0},
+                    {"id": 5, "status": "completed", "amount": 40.25}
+                ];
+
+                const total = data
+                    .filter(tx => tx.status === 'completed')
+                    .reduce((sum, tx) => sum + tx.amount, 0);
+
+                // Re-render UI
+                loader.style.display = "none";
+                outputCode.style.opacity = "1";
+                
+                // Output styling respects light/dark mode variables better now
+                outputCode.innerHTML = `{
+  <span class="data-key">"total_completed_amount"</span>: <span class="data-number" style="font-weight: bold; font-size: 1.1em;">${total}</span>
+}`;
+                
+                btn.innerHTML = `Execution Successful`;
+                btn.style.background = "linear-gradient(90deg, #10b981, #059669)";
+                btn.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.3)";
+                
+                nodeText.innerText = "State Synced";
+                nodeText.style.color = "#10b981";
+                
+                outputTitle.style.color = "#10b981";
+                outputPanel.style.borderTopColor = "#10b981";
+                
+                dot.style.background = "#10b981";
+                dot.style.boxShadow = "0 0 8px rgba(16, 185, 129, 0.8)";
+                dot.style.animation = "none";
+
+            }, 1800); // 1.8 seconds processing delay
+        }
+    </script>
+</body>
+</html>
